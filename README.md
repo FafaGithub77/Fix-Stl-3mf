@@ -1,8 +1,9 @@
 # Fix STL — drag & drop mesh repair for macOS
 
-Bambu Studio on Windows has a "Fix STL" option; on macOS it doesn't (it relies on a Windows-only API). This small app fills the gap: drop one or more `.stl` / `.3mf` files on it and get repaired copies next to the originals.
 
-It fixes: holes, flipped normals, non-manifold geometry, duplicate and degenerate faces.
+A lightweight macOS utility to fix broken .stl and .3mf files before slicing.
+
+On macOS, Bambu Studio lacks native mesh repair because the feature relies on Windows-only APIs (Netfabb). This app fills that gap: drop one or more files onto it to get clean, watertight copies ready for slicing.
 
 ## Download and use (prebuilt app)
 
