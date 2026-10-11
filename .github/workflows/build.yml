@@ -27,9 +27,28 @@ jobs:
           cd Platypus.app/Contents/Resources
           sudo bash InstallCommandLineTool.sh
 
+      # Icona: metti nel repo icon.icns oppure icon.png (meglio 1024x1024, quadrata).
+      # Se c'e' solo il PNG, qui viene convertito in .icns.
+      - name: Prepare app icon
+        run: |
+          if [ -f icon.icns ]; then
+            cp icon.icns AppIcon.icns
+          elif [ -f icon.png ]; then
+            mkdir AppIcon.iconset
+            for s in 16 32 128 256 512; do
+              sips -z $s $s icon.png --out "AppIcon.iconset/icon_${s}x${s}.png"
+              sips -z $((s*2)) $((s*2)) icon.png --out "AppIcon.iconset/icon_${s}x${s}@2x.png"
+            done
+            iconutil -c icns AppIcon.iconset -o AppIcon.icns
+          else
+            echo "::warning::Nessuna icona trovata (icon.icns o icon.png): l'app avra' l'icona di default"
+          fi
+
       - name: Build macOS App with Platypus
         run: |
           chmod +x fix_stl.sh
+          ICON_ARGS=""
+          if [ -f AppIcon.icns ]; then ICON_ARGS="--app-icon AppIcon.icns"; fi
           platypus \
             --overwrite \
             --name "Fix Stl" \
@@ -38,6 +57,7 @@ jobs:
             --droppable \
             --suffixes "stl|3mf" \
             --bundled-file "fix_stl.py" \
+            $ICON_ARGS \
             fix_stl.sh \
             "Fix Stl.app"
 
