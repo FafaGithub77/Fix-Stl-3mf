@@ -3,8 +3,8 @@ name: Build and Release Mac App
 on:
   push:
     tags:
-      - 'v*' # Si attiva automaticamente quando crei un tag (es. v1.0.1)
-  workflow_dispatch: # Permette anche l'avvio manuale dalla scheda Actions
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -19,7 +19,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          # Nessuna opzione di cache per evitare errori di file mancanti
 
       - name: Install Python dependencies
         run: |
