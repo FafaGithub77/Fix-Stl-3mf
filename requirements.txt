@@ -1,0 +1,6 @@
+numpy
+scipy
+trimesh
+pymeshfix
+pyvista
+numpy-stl

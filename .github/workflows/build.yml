@@ -6,42 +6,43 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build macOS App (Intel & Apple Silicon compatible)
-    runs-on: macos-13
+    name: Build Fix Stl.app
+    runs-on: macos-14
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install Python dependencies
+      # L'app Platypus e' solo un involucro: nel build non servono Python ne' pip.
+      # Le dipendenze (requirements.txt) servono a chi USA l'app.
+      - name: Install Platypus command line tool
         run: |
-          python -m pip install --upgrade pip
-          pip install trimesh pymeshfix pyvista numpy-stl scipy pyinstaller
-
-      - name: Install Platypus CLI
-        run: |
-          brew install --cask platypus
+          curl -L -O https://github.com/sveinbjornt/Platypus/releases/download/v5.5.0/platypus5.5.0.zip
+          unzip -q platypus5.5.0.zip
+          cd Platypus.app/Contents/Resources
+          sudo bash InstallCommandLineTool.sh
 
       - name: Build macOS App with Platypus
         run: |
-          /Applications/Platypus.app/Contents/MacOS/platypus \
+          chmod +x fix_stl.sh
+          platypus \
+            --overwrite \
+            --name "Fix Stl" \
             --interface-type "Droplet" \
-            --script-path "fix_stl.sh" \
-            --app-name "Fix Stl" \
+            --interpreter /bin/sh \
+            --droppable \
+            --suffixes "stl|3mf" \
             --bundled-file "fix_stl.py" \
-            --suffixes "stl,3mf" \
+            fix_stl.sh \
             "Fix Stl.app"
 
       - name: Compress App
-        run: |
-          zip -r "Fix-Stl-macOS.zip" "Fix Stl.app"
+        run: ditto -c -k --keepParent "Fix Stl.app" Fix-Stl-macOS.zip
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -50,9 +51,7 @@ jobs:
           path: Fix-Stl-macOS.zip
 
       - name: Upload Release Asset
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
-        if: startsWih(github.ref, 'refs/tags/')
         with:
           files: Fix-Stl-macOS.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
