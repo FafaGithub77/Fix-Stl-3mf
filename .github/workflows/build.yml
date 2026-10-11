@@ -1,0 +1,58 @@
+name: Build and Release Mac App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build macOS App (Intel & Apple Silicon compatible)
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install trimesh pymeshfix pyvista numpy-stl scipy pyinstaller
+
+      - name: Install Platypus CLI
+        run: |
+          brew install --cask platypus
+
+      - name: Build macOS App with Platypus
+        run: |
+          /Applications/Platypus.app/Contents/MacOS/platypus \
+            --interface-type "Droplet" \
+            --script-path "fix_stl.sh" \
+            --app-name "Fix Stl" \
+            --bundled-file "fix_stl.py" \
+            --suffixes "stl,3mf" \
+            "Fix Stl.app"
+
+      - name: Compress App
+        run: |
+          zip -r "Fix-Stl-macOS.zip" "Fix Stl.app"
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fix-Stl-macOS
+          path: Fix-Stl-macOS.zip
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        if: startsWih(github.ref, 'refs/tags/')
+        with:
+          files: Fix-Stl-macOS.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
