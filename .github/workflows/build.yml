@@ -8,8 +8,8 @@ on:
 
 jobs:
   build:
-    name: Build macOS App
-    runs-on: macos-latest
+    name: Build macOS App (Intel & Apple Silicon compatible)
+    runs-on: macos-13
 
     steps:
       - name: Checkout code
