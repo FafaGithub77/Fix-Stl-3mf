@@ -3,68 +3,51 @@ name: Build and Release Mac App
 on:
   push:
     tags:
-      - 'v*'  # Si attiva automaticamente quando crei un tag (es. v1.0.1)
-  workflow_dispatch:
+      - 'v*' # Si attiva automaticamente quando crei un tag (es. v1.0.1)
+  workflow_dispatch: # Permette anche l'avvio manuale dalla scheda Actions
 
 jobs:
-  build:
-    name: Build macOS App
-    runs-on: macos-latest
+    build:
+      name: Build macOS App
+      runs-on: macos-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.10'
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install trimesh pymeshfix pyvista numpy-stl scipy
+        - name: Install Python dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install trimesh pymeshfix pyvista numpy-stl scipy pyinstaller
 
-      - name: Install Platypus CLI
-        run: |
-          brew install platypus
+        - name: Install Platypus
+          run: |
+            brew install --cask platypus
 
-      - name: Build macOS App with Platypus
-        run: |
-          platypus \
-            --app-name "Fix Stl" \
-            --interface-type Droplet \
-            --interpreter "/bin/sh" \
-            --bundled-file fix_stl.py \
-            --file-extension stl \
-            --file-extension 3mf \
-            fix_stl.sh \
-            "Fix Stl.app"
+        - name: Build .app bundle with Platypus
+          run: |
+            # Crea l'applicazione .app usando Platypus da riga di comando
+            /Applications/Platypus.app/Contents/MacOS/platypus \
+              --interface-type "Droplet" \
+              --script-path "fix_stl.sh" \
+              --app-name "Fix Stl" \
+              --bundled-file "fix_stl.py" \
+              --suffixes "stl,3mf" \
+              "Fix Stl.app"
 
-      - name: Compress App
-        run: |
-          zip -r fix_stl_macos.zip "Fix Stl.app"
+        - name: Compress App to ZIP
+          run: |
+            zip -r "Fix-Stl-macOS.zip" "Fix Stl.app"
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fix_stl_macos.zip
-          path: fix_stl_macos.zip
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download workflow artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: fix_stl_macos.zip
-
-      - name: Create Release and Upload Asset
-        uses: softprops/action-gh-release@v2
-        with:
-          files: fix_stl_macos.zip
-          generate_release_notes: true
+        - name: Upload Release Asset
+          uses: softprops/action-gh-release@v2
+          if: startsWith(github.ref, 'refs/tags/')
+          with:
+            files: Fix-Stl-macOS.zip
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
