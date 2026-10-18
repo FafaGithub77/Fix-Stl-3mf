@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Fix STL - ripara file STL rotti (buchi, normali invertite, non-manifold).
-Uso: python3 fix_stl.py file1.stl [file2.stl ...]
-Output: file1_fixed.stl accanto all'originale.
+Fix STL - repairs broken STL files (holes, inverted normals, non-manifold).
+Usage: python3 fix_stl.py file1.stl [file2.stl ...]
+Output: file1_fixed.stl next to the original.
 
-Pensato per essere avvolto in un'app drag&drop (es. con Platypus) su macOS,
-per rimpiazzare la funzione "Fix STL" assente in Bambu Studio su Mac.
+Designed to be wrapped in a drag & drop app (e.g., with Platypus) on macOS, to replace the "Fix STL" feature missing in Bambu Studio on Mac.
 
-Mesh molto grandi (> BIG_MESH_FACES facce): salta i passaggi lenti di trimesh
-e usa direttamente MeshFix. Consiglio: decimare prima la mesh (500k-1M facce).
+Very large meshes (> BIG_MESH_FACES faces): skips slow trimesh steps and uses MeshFix directly. Tip: decimate the mesh first (500k–1M faces).
+
 """
 import sys
 import os
