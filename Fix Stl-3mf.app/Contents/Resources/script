@@ -1,0 +1,47 @@
+#!/bin/sh
+# Wrapper per Platypus: trova un python3 con trimesh installato (preferendo
+# Homebrew, perché una app GUI lanciata dal Finder non carica .zshrc e
+# potrebbe altrimenti trovare un python3 di sistema senza i pacchetti),
+# esegue fix_stl.py sui file trascinati, scrive un log e mostra una notifica.
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG="$HOME/Desktop/fix_stl_log.txt"
+
+CANDIDATES="/opt/homebrew/bin/python3 /usr/local/bin/python3 $(command -v python3) /usr/bin/python3"
+
+PYTHON=""
+for p in $CANDIDATES; do
+  if [ -x "$p" ] && "$p" -c "import trimesh" >/dev/null 2>&1; then
+    PYTHON="$p"
+    break
+  fi
+done
+
+if [ -z "$PYTHON" ]; then
+  # nessun python3 ha trimesh: prendine comunque uno valido,
+  # l'errore finirà nel log invece di sparire nel nulla
+  for p in $CANDIDATES; do
+    if [ -x "$p" ]; then PYTHON="$p"; break; fi
+  done
+fi
+
+if [ -z "$PYTHON" ]; then
+  osascript -e 'display notification "python3 non trovato sul sistema" with title "Fix STL: errore"'
+  exit 1
+fi
+
+{
+  echo "=== $(date) ==="
+  echo "python3 usato: $PYTHON"
+  "$PYTHON" "$DIR/fix_stl.py" "$@"
+  echo "exit status: $?"
+} > "$LOG" 2>&1
+
+STATUS=$(tail -1 "$LOG" | awk '{print $NF}')
+SUMMARY=$(grep "Completato:" "$LOG" | tail -1)
+
+if [ "$STATUS" = "0" ]; then
+  osascript -e "display notification \"$SUMMARY\" with title \"Fix STL completato\""
+else
+  osascript -e "display notification \"Errore - vedi fix_stl_log.txt sulla Desktop\" with title \"Fix STL: errore\""
+fi
