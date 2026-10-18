@@ -24,13 +24,13 @@ xattr -dr com.apple.quarantine "/Applications/Fix Stl.app"
 - Python packages:
 
 ```bash
-python3 -m pip install trimesh pymeshfix pyvista numpy-stl scipy
+python3 -m pip install trimesh pymeshfix pyvista numpy-stl scipy lxml
 ```
 
 The app uses the first `python3` it finds (PATH, then `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`). If the app window shows `ModuleNotFoundError`, install the packages with the exact interpreter path printed in that error message, e.g.:
 
 ```bash
-/path/shown/in/the/error/python3 -m pip install trimesh pymeshfix pyvista numpy-stl scipy
+/path/shown/in/the/error/python3 -m pip install trimesh pymeshfix pyvista numpy-stl scipy lxml
 ```
 
 ## Terminal usage (no app needed)
@@ -51,6 +51,16 @@ Works on any OS where the dependencies install, not only macOS.
 For `.3mf` files with several objects on the plate, each part is repaired separately and part names are preserved.
 
 Tested on meshes with single and multiple holes: in both cases the result is watertight.
+
+## Large meshes
+
+Models with millions of triangles (for example very detailed fur or scans) can take several minutes, and the app window may look idle while it works: the log shows each phase with its timing. For meshes above 1 million faces the script skips the slow trimesh passes and runs MeshFix directly, which can use a lot of RAM.
+
+Tips:
+
+- Prefer `.stl` over `.3mf` for heavy models: loading a large `.3mf` (XML) is much slower than a binary STL.
+- If you can, decimate the mesh to roughly 500k–1M faces before repairing; at normal print sizes the difference is not visible.
+- Models made of many separate bodies are kept intact: MeshFix does not discard the smaller pieces.
 
 ## ⚠️ Limitations with .3mf
 

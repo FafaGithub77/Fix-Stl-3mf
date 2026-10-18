@@ -4,3 +4,4 @@ trimesh
 pymeshfix
 pyvista
 numpy-stl
+lxml
