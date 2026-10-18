@@ -62,16 +62,16 @@ jobs:
             "Fix Stl.app"
 
       - name: Compress App
-        run: ditto -c -k --keepParent "Fix Stl.app" Fix-Stl-macOS.zip
+        run: ditto -c -k --keepParent "Fix Stl.app" Fix_Stl-3mf_macos.zip
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Fix-Stl-macOS
-          path: Fix-Stl-macOS.zip
+          path: Fix_Stl-3mf_macos.zip
 
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: Fix-Stl-macOS.zip
+          files: Fix_Stl-3mf_macos.zip
